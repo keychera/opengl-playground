@@ -38,9 +38,9 @@ int main()
 
     // preparing datas to draw
     float vertices[] = {
-        0.0f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 0.0f,
         -1.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f};
+        -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 2.0f};
     float vertices2[] = {
         0.0f, -0.5f, 0.0f,
         1.0f, -0.5f, 0.0f,
@@ -105,7 +105,8 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    stbi_set_flip_vertically_on_load(true);  
+
+    stbi_set_flip_vertically_on_load(true);
     data = stbi_load("hunwiz.png", &width, &height, &nrChannels, 0);
     if (data)
     {
@@ -120,7 +121,10 @@ int main()
     shader1.use();                 // don't forget to activate the shader before setting uniforms!
     shader1.setInt("texture1", 0); // set it manually
     shader1.setInt("texture2", 1); // or with shader class
-
+    float currentMixVal = 0.35f;
+    float currentZoom = 1.0f;
+    shader1.setFloat("mixVal", currentMixVal);
+    shader1.setFloat("zoom", currentZoom);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
@@ -134,6 +138,26 @@ int main()
 
         shader1.use();
         shader1.setFloat("offset", 0.05f * sin(timeValue));
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        {
+            currentMixVal += 0.05f; 
+            shader1.setFloat("mixVal", currentMixVal);
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            currentMixVal -= 0.05f; 
+            shader1.setFloat("mixVal", currentMixVal);
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        {
+            currentZoom += 0.01f; 
+            shader1.setFloat("zoom", currentZoom);
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        {
+            currentZoom -= 0.01f; 
+            shader1.setFloat("zoom", currentZoom);
+        }
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
