@@ -9,6 +9,9 @@
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
+float mixVal = 0.35f;
+float zoomVal = 1.0f;
+
 int main()
 {
     glfwInit();
@@ -121,10 +124,6 @@ int main()
     shader1.use();                 // don't forget to activate the shader before setting uniforms!
     shader1.setInt("texture1", 0); // set it manually
     shader1.setInt("texture2", 1); // or with shader class
-    float currentMixVal = 0.35f;
-    float currentZoom = 1.0f;
-    shader1.setFloat("mixVal", currentMixVal);
-    shader1.setFloat("zoom", currentZoom);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
@@ -138,26 +137,9 @@ int main()
 
         shader1.use();
         shader1.setFloat("offset", 0.05f * sin(timeValue));
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        {
-            currentMixVal += 0.05f; 
-            shader1.setFloat("mixVal", currentMixVal);
-        }
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        {
-            currentMixVal -= 0.05f; 
-            shader1.setFloat("mixVal", currentMixVal);
-        }
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        {
-            currentZoom += 0.01f; 
-            shader1.setFloat("zoom", currentZoom);
-        }
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        {
-            currentZoom -= 0.01f; 
-            shader1.setFloat("zoom", currentZoom);
-        }
+        shader1.setFloat("mixVal", mixVal);
+        shader1.setFloat("zoom", zoomVal);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
@@ -186,6 +168,26 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        mixVal += 0.05f;
+        if(mixVal >= 1.0f)
+            mixVal = 1.0f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        mixVal -= 0.05f;
+        if(mixVal <= 0.0f)
+            mixVal = 0.0f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
+        zoomVal += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
+        zoomVal -= 0.01f;
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
