@@ -11,7 +11,7 @@ uniform float offset;
 
 void main()
 {
-  gl_Position = vec4(aPos.x + offset, -aPos.y + offset, aPos.z, 1.0f);
+  gl_Position = vec4(aPos.x + offset, aPos.y + offset, aPos.z, 1.0f);
   vertexColor = vec4(aColor, 1.0f);
   vertexPos = gl_Position;
   TexCoord = aTexCoord;
