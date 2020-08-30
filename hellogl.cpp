@@ -19,6 +19,13 @@ const char *fragmentShaderSource = "#version 330 core\n"
                                    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
                                    "}\n";
 
+const char *fragmentShaderSource2 = "#version 330 core\n"
+                                   "out vec4 FragColor;\n"
+                                   "void main()\n"
+                                   "{\n"
+                                   "    FragColor = vec4(0.5f, 1.0f, 0.2f, 1.0f);\n"
+                                   "}\n";
+
 int main()
 {
     glfwInit();
@@ -72,6 +79,19 @@ int main()
                   << infoLog << std::endl;
     }
 
+    unsigned int fragmentShader2;
+    fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
+    glCompileShader(fragmentShader2);
+
+    glGetShaderiv(fragmentShader2, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader2, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
+                  << infoLog << std::endl;
+    }
+
     unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
@@ -86,20 +106,33 @@ int main()
                   << infoLog << std::endl;
     }
 
+    unsigned int shaderProgram2;
+    shaderProgram2 = glCreateProgram();
+    glAttachShader(shaderProgram2, vertexShader);
+    glAttachShader(shaderProgram2, fragmentShader2);
+    glLinkProgram(shaderProgram2);
+
+    glGetProgramiv(shaderProgram2, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(shaderProgram2, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::LINKING::COMPILATION_FAILED\n"
+                  << infoLog << std::endl;
+    }
+
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    glDeleteShader(fragmentShader2);
 
     // preparing datas to draw
     float vertices[] = {
         0.0f, -0.5f, 0.0f,
         -1.0f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f
-    };
+        -0.5f, 0.5f, 0.0f};
     float vertices2[] = {
         0.0f, -0.5f, 0.0f,
         1.0f, -0.5f, 0.0f,
-        0.5f, 0.5f, 0.0f
-    };
+        0.5f, 0.5f, 0.0f};
 
     unsigned int VBO, VAO;
     unsigned int VBO2, VAO2;
@@ -135,6 +168,7 @@ int main()
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUseProgram(shaderProgram2);
         glBindVertexArray(VAO2);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
