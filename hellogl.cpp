@@ -2,6 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <cmath>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shader_s.h"
 #include "stb_image.h"
@@ -126,9 +129,14 @@ int main()
     shader1.setInt("texture2", 1); // or with shader class
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    glm::mat4 trans;
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
+        trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -139,6 +147,8 @@ int main()
         shader1.setFloat("offset", 0.05f * sin(timeValue));
         shader1.setFloat("mixVal", mixVal);
         shader1.setFloat("zoom", zoomVal);
+        unsigned int transformLoc = glGetUniformLocation(shader1.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -150,6 +160,9 @@ int main()
         float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
         shader2.use();
         shader2.setFloat("ourGreenColor", greenValue);
+        transformLoc = glGetUniformLocation(shader2.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
         glBindVertexArray(VAO2);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -171,13 +184,13 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
         mixVal += 0.05f;
-        if(mixVal >= 1.0f)
+        if (mixVal >= 1.0f)
             mixVal = 1.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
         mixVal -= 0.05f;
-        if(mixVal <= 0.0f)
+        if (mixVal <= 0.0f)
             mixVal = 0.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
