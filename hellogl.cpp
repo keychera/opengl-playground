@@ -134,10 +134,6 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-        trans = glm::mat4(1.0f);
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -147,19 +143,30 @@ int main()
         shader1.setFloat("offset", 0.05f * sin(timeValue));
         shader1.setFloat("mixVal", mixVal);
         shader1.setFloat("zoom", zoomVal);
-        unsigned int transformLoc = glGetUniformLocation(shader1.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
+
+        trans = glm::mat4(1.0f);
+        unsigned int transformLoc = glGetUniformLocation(shader1.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        transformLoc = glGetUniformLocation(shader1.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
         shader2.use();
         shader2.setFloat("ourGreenColor", greenValue);
+        trans = glm::mat4(1.0f);
+        trans = glm::rotate(trans, (float)glfwGetTime()*0.2f, glm::vec3(0.0f, 0.0f, 1.0f));
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
         transformLoc = glGetUniformLocation(shader2.ID, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
