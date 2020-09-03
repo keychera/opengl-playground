@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader_s.h"
+#include "Camera.h"
 #include "stb_image.h"
 
 void processInput(GLFWwindow *window);
@@ -19,14 +20,14 @@ float zoomVal = 1.0f;
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-float yaw = -90.0f;
-float pitch = 0.0f;
-float lastX = 400, lastY = 300;
 
 int main()
 {
@@ -35,7 +36,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -55,19 +56,9 @@ int main()
     glViewport(0, 0, 800, 600);
 
     // compile vertex and fragmentShader first
-    Shader shader1("./vertex.vs", "./fragment.fs");
-    Shader shader2("./vertex.vs", "./fragment2.fs");
     Shader cubeShader("./cube_vertex.vs", "./fragment.fs");
 
     // preparing datas to draw
-    float vertices[] = {
-        0.0f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 0.0f,
-        -1.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 2.0f};
-    float vertices2[] = {
-        0.0f, -0.5f, 0.0f,
-        1.0f, -0.5f, 0.0f,
-        0.5f, 0.5f, 0.0f};
     float cube_vertices[] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
         0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
@@ -123,45 +114,15 @@ int main()
         glm::vec3(1.5f, 0.2f, -1.5f),
         glm::vec3(-1.3f, 1.0f, -1.5f)};
 
-    unsigned int VBO, VAO;
-    unsigned int VBO2, VAO2;
     unsigned int cubeVBO, cubeVAO;
-    glGenBuffers(1, &VBO);
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO2);
-    glGenVertexArrays(1, &VAO2);
     glGenBuffers(1, &cubeVBO);
     glGenVertexArrays(1, &cubeVAO);
 
-    // 1. bind Vertex Array Object
-    glBindVertexArray(VAO);
-    // 2. copy our vertices array in a buffer for OpenGL to use
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // 4. then set our vertex attributes pointers
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // tex attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    //another VAO/VBO
-    glBindVertexArray(VAO2);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-
     //cube VAO/VBO
     glBindVertexArray(cubeVAO);
-    // 2. copy our vertices array in a buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
-    // 4. then set our vertex attributes pointers
+
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
@@ -211,33 +172,11 @@ int main()
         std::cout << "Failed to load texture" << std::endl;
     }
 
-    shader1.use(); // don't forget to activate the shader before setting uniforms!
-    shader1.setInt("texture1", 0);
-    shader1.setInt("texture2", 1);
     cubeShader.use();
     cubeShader.setInt("texture1", 0);
     cubeShader.setInt("texture2", 1);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    glm::mat4 trans;
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 projection;
-    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-    unsigned int transformLoc, modelLoc, viewLoc, projectionLoc;
-    shader1.use();
-    shader1.setMat4("model", model);
-    shader1.setMat4("projection", projection);
-
-    shader2.use();
-    shader2.setMat4("model", model);
-    shader2.setMat4("projection", projection);
-
-    cubeShader.use();
-    cubeShader.setMat4("projection", projection);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -251,47 +190,26 @@ int main()
         deltaTime = timeValue - lastFrame;
         lastFrame = timeValue;
 
-        glm::vec3 direction;
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        cameraFront = glm::normalize(direction);
-
-        const float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        glm::mat4 view;
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-        // first triangles
-        shader1.use();
-        shader1.setFloat("offset", 0.05f * sin(timeValue));
-        shader1.setFloat("mixVal", mixVal);
-        shader1.setFloat("zoom", zoomVal);
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
-        glBindVertexArray(VAO);
-
-        trans = glm::mat4(1.0f);
-        shader1.setMat4("transform", trans);
-        shader1.setMat4("view", view);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        shader1.setMat4("transform", trans);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(cubeVAO);
 
         //Cubes
         cubeShader.use();
         cubeShader.setFloat("mixVal", mixVal);
         cubeShader.setFloat("zoom", zoomVal);
+
+        glm::mat4 model = glm::mat4(1.0f);
+
+        glm::mat4 view = camera.GetViewMatrix();
         cubeShader.setMat4("view", view);
 
-        glBindVertexArray(cubeVAO);
+        glm::mat4 projection;
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        cubeShader.setMat4("projection", projection);
+
         for (unsigned int i = 0; i < 10; i++)
         {
             float angle = 20.0f * i;
@@ -304,25 +222,12 @@ int main()
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
-        // second triangle
-        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        shader2.use();
-        shader2.setFloat("ourGreenColor", greenValue);
-        trans = glm::mat4(1.0f);
-        trans = glm::rotate(trans, (float)glfwGetTime() * 0.2f, glm::vec3(0.0f, 0.0f, 1.0f));
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        shader2.setMat4("transform", trans);
-        shader2.setMat4("view", view);
-
-        glBindVertexArray(VAO2);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &cubeVAO);
+    glDeleteBuffers(1, &cubeVBO);
 
     glfwTerminate();
     return 0;
@@ -353,15 +258,14 @@ void processInput(GLFWwindow *window)
         zoomVal -= 0.01f;
     }
 
-    const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -382,14 +286,5 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    const float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
+    camera.ProcessMouseMovement(xoffset, yoffset);
 }
