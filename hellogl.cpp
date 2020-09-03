@@ -211,7 +211,6 @@ int main()
     model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
     glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -220,22 +219,16 @@ int main()
     shader1.use();
     modelLoc = glGetUniformLocation(shader1.ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    viewLoc = glGetUniformLocation(shader1.ID, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     projectionLoc = glGetUniformLocation(shader1.ID, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     shader2.use();
     modelLoc = glGetUniformLocation(shader2.ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    viewLoc = glGetUniformLocation(shader2.ID, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     projectionLoc = glGetUniformLocation(shader2.ID, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     cubeShader.use();
-    viewLoc = glGetUniformLocation(cubeShader.ID, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     projectionLoc = glGetUniformLocation(cubeShader.ID, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -249,6 +242,13 @@ int main()
 
         float timeValue = glfwGetTime();
 
+        const float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        glm::mat4 view;
+        view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+
+        // first triangles
         shader1.use();
         shader1.setFloat("offset", 0.05f * sin(timeValue));
         shader1.setFloat("mixVal", mixVal);
@@ -263,6 +263,8 @@ int main()
         trans = glm::mat4(1.0f);
         transformLoc = glGetUniformLocation(shader1.ID, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        viewLoc = glGetUniformLocation(shader1.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
         trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
@@ -272,10 +274,14 @@ int main()
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
+        //Cubes
         cubeShader.use();
         cubeShader.setFloat("mixVal", mixVal);
         cubeShader.setFloat("zoom", zoomVal);
         glBindVertexArray(cubeVAO);
+
+        viewLoc = glGetUniformLocation(cubeShader.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         for (unsigned int i = 0; i < 10; i++)
         {
@@ -292,6 +298,7 @@ int main()
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // second triangle
         float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
         shader2.use();
         shader2.setFloat("ourGreenColor", greenValue);
@@ -301,6 +308,9 @@ int main()
 
         transformLoc = glGetUniformLocation(shader2.ID, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+        viewLoc = glGetUniformLocation(shader2.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         glBindVertexArray(VAO2);
         glDrawArrays(GL_TRIANGLES, 0, 3);
