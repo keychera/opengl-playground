@@ -221,31 +221,23 @@ int main()
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glm::mat4 trans;
-
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
     glm::mat4 view = glm::mat4(1.0f);
-
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
     unsigned int transformLoc, modelLoc, viewLoc, projectionLoc;
     shader1.use();
-    modelLoc = glGetUniformLocation(shader1.ID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    projectionLoc = glGetUniformLocation(shader1.ID, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    shader1.setMat4("model", model);
+    shader1.setMat4("projection", projection);
 
     shader2.use();
-    modelLoc = glGetUniformLocation(shader2.ID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    projectionLoc = glGetUniformLocation(shader2.ID, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    shader2.setMat4("model", model);
+    shader2.setMat4("projection", projection);
 
     cubeShader.use();
-    projectionLoc = glGetUniformLocation(cubeShader.ID, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    cubeShader.setMat4("projection", projection);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -284,42 +276,33 @@ int main()
         glBindVertexArray(VAO);
 
         trans = glm::mat4(1.0f);
-        transformLoc = glGetUniformLocation(shader1.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-        viewLoc = glGetUniformLocation(shader1.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
+        shader1.setMat4("transform", trans);
+        shader1.setMat4("view", view);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+
         trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
         trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-
-        transformLoc = glGetUniformLocation(shader1.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        shader1.setMat4("transform", trans);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         //Cubes
         cubeShader.use();
         cubeShader.setFloat("mixVal", mixVal);
         cubeShader.setFloat("zoom", zoomVal);
+        cubeShader.setMat4("view", view);
+
         glBindVertexArray(cubeVAO);
-
-        viewLoc = glGetUniformLocation(cubeShader.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
         for (unsigned int i = 0; i < 10; i++)
         {
-            model = glm::mat4(1.0f);
             float angle = 20.0f * i;
+            model = glm::mat4(1.0f);
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             // model = glm::rotate(model, (float)timeValue * glm::radians(50.0f), glm::vec3(0.5f, sin(timeValue) * 0.5f, 0.0f));
             model = glm::translate(model, cubePositions[i]);
-            modelLoc = glGetUniformLocation(cubeShader.ID, "model");
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            cubeShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-
-        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // second triangle
         float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
@@ -328,12 +311,8 @@ int main()
         trans = glm::mat4(1.0f);
         trans = glm::rotate(trans, (float)glfwGetTime() * 0.2f, glm::vec3(0.0f, 0.0f, 1.0f));
         trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-
-        transformLoc = glGetUniformLocation(shader2.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
-        viewLoc = glGetUniformLocation(shader2.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        shader2.setMat4("transform", trans);
+        shader2.setMat4("view", view);
 
         glBindVertexArray(VAO2);
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -393,11 +372,11 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 {
     if (firstMouse) // initially set to true
-{
-    lastX = xpos;
-    lastY = ypos;
-    firstMouse = false;
-}
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
     lastX = xpos;
