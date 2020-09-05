@@ -6,9 +6,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader_s.h"
-#include "Camera.h"
-#include "stb_image.h"
+#include "headers/shader_s.h"
+#include "headers/Camera.h"
+#include "headers/stb_image.h"
 
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -56,7 +56,7 @@ int main()
     glViewport(0, 0, 800, 600);
 
     // compile vertex and fragmentShader first
-    Shader cubeShader("./cube_vertex.vs", "./fragment.fs");
+    Shader cubeShader("shaders/cube.vs", "shaders/two_tex.fs");
 
     // preparing datas to draw
     float cube_vertices[] = {
@@ -140,7 +140,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("assets/container.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -161,7 +161,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     stbi_set_flip_vertically_on_load(true);
-    data = stbi_load("hunwiz.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("assets/hunwiz.png", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
