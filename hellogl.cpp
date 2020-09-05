@@ -10,6 +10,9 @@
 #include "headers/Camera.h"
 #include "headers/stb_image.h"
 
+#define SHADERS_LOC "shaders"
+#define ASSETS_LOC "assets"
+
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -28,6 +31,9 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+
+//light
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
 {
@@ -56,7 +62,8 @@ int main()
     glViewport(0, 0, 800, 600);
 
     // compile vertex and fragmentShader first
-    Shader cubeShader("shaders/cube.vs", "shaders/two_tex.fs");
+    Shader cubeShader(SHADERS_LOC "/cube.vs", SHADERS_LOC "/light.fs");
+    Shader lightCubeShader(SHADERS_LOC "/light_cube.vs", SHADERS_LOC "/light_cube.fs");
 
     // preparing datas to draw
     float cube_vertices[] = {
@@ -130,6 +137,16 @@ int main()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // light VAO
+    unsigned int lightCubeVAO;
+    glGenVertexArrays(1, &lightCubeVAO);
+    glBindVertexArray(lightCubeVAO);
+    // we only need to bind to the VBO, the container's VBO's data already contains the data.
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    // set the vertex attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
     // textures
     unsigned int texture1;
     glGenTextures(1, &texture1);
@@ -140,7 +157,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("assets/container.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load(ASSETS_LOC "/container.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -161,7 +178,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     stbi_set_flip_vertically_on_load(true);
-    data = stbi_load("assets/hunwiz.png", &width, &height, &nrChannels, 0);
+    data = stbi_load(ASSETS_LOC "/hunwiz.png", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -171,10 +188,6 @@ int main()
     {
         std::cout << "Failed to load texture" << std::endl;
     }
-
-    cubeShader.use();
-    cubeShader.setInt("texture1", 0);
-    cubeShader.setInt("texture2", 1);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -194,22 +207,22 @@ int main()
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
-        glBindVertexArray(cubeVAO);
+
+        // view and projection for all object
+        glm::mat4 model;
+        glm::mat4 view;
+        view = camera.GetViewMatrix();
+        glm::mat4 projection;
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         //Cubes
         cubeShader.use();
-        cubeShader.setFloat("mixVal", mixVal);
-        cubeShader.setFloat("zoom", zoomVal);
-
-        glm::mat4 model = glm::mat4(1.0f);
-
-        glm::mat4 view = camera.GetViewMatrix();
+        cubeShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        cubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
         cubeShader.setMat4("view", view);
-
-        glm::mat4 projection;
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         cubeShader.setMat4("projection", projection);
 
+        glBindVertexArray(cubeVAO);
         for (unsigned int i = 0; i < 10; i++)
         {
             float angle = 20.0f * i;
@@ -221,6 +234,19 @@ int main()
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+
+        // light cube
+        lightCubeShader.use();
+        lightCubeShader.setMat4("view", view);
+        lightCubeShader.setMat4("projection", projection);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
+        lightCubeShader.setMat4("model", model);
+
+        glBindVertexArray(lightCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
