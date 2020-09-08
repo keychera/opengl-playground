@@ -16,6 +16,7 @@
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+unsigned int loadTexture(char const *path);
 
 float mixVal = 0.35f;
 float zoomVal = 1.0f;
@@ -67,47 +68,48 @@ int main()
 
     // preparing datas to draw
     float cube_vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
 
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f // (x,y,z) normal(x,y,z)
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f // for formatting
     };
 
     glm::vec3 cubePositions[] = {
@@ -132,11 +134,15 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    int blockSize = 8;
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    // nromal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    // normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // tex attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // light VAO
     unsigned int lightCubeVAO;
@@ -145,52 +151,22 @@ int main()
     // we only need to bind to the VBO, the container's VBO's data already contains the data.
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     // set the vertex attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
-    // textures
-    unsigned int texture1;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load textures (we now use a utility function to keep the code more organized)
+    // -----------------------------------------------------------------------------
+    unsigned int diffuseMap = loadTexture(ASSETS_LOC "/container2.png");
 
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(ASSETS_LOC "/container.jpg", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-
-    unsigned int texture2;
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    stbi_set_flip_vertically_on_load(true);
-    data = stbi_load(ASSETS_LOC "/hunwiz.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
+    // shader configuration
+    // --------------------
+    cubeShader.use();
+    cubeShader.setInt("material.diffuse", 0);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    cubeShader.use();
+    cubeShader.setInt("material.diffuse", 0);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -203,11 +179,6 @@ int main()
         float timeValue = glfwGetTime();
         deltaTime = timeValue - lastFrame;
         lastFrame = timeValue;
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
 
         // view and projection for all object
         glm::mat4 model;
@@ -222,23 +193,21 @@ int main()
         cubeShader.setMat4("projection", projection);
         cubeShader.setVec3("viewPos", camera.Position);
 
-        glm::vec3 lightColor;
-        lightColor.x = sin(glfwGetTime() * 2.0f);
-        lightColor.y = sin(glfwGetTime() * 0.7f);
-        lightColor.z = sin(glfwGetTime() * 1.3f);
-
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+        glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
+        glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f);
 
         cubeShader.setVec3("light.position", lightPos);
-        cubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        cubeShader.setVec3("light.diffuse", diffuseColor); // darken diffuse light a bit
-        cubeShader.setVec3("light.specular", ambientColor);
+        cubeShader.setVec3("light.ambient", ambientColor);
+        cubeShader.setVec3("light.diffuse", diffuseColor);
+        cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
         cubeShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
         cubeShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
         cubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         cubeShader.setFloat("material.shininess", 32.0f);
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
         glBindVertexArray(cubeVAO);
         for (unsigned int i = 0; i < 10; i++)
@@ -335,4 +304,43 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
     lastY = ypos;
 
     camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+unsigned int loadTexture(char const *path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
 }
