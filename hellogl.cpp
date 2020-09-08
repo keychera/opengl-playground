@@ -218,12 +218,27 @@ int main()
 
         //Cubes
         cubeShader.use();
-        cubeShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-        cubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        cubeShader.setVec3("lightPos", lightPos);
-        cubeShader.setVec3("viewPos", camera.Position);
         cubeShader.setMat4("view", view);
         cubeShader.setMat4("projection", projection);
+        cubeShader.setVec3("viewPos", camera.Position);
+
+        glm::vec3 lightColor;
+        lightColor.x = sin(glfwGetTime() * 2.0f);
+        lightColor.y = sin(glfwGetTime() * 0.7f);
+        lightColor.z = sin(glfwGetTime() * 1.3f);
+
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+        cubeShader.setVec3("light.position", lightPos);
+        cubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        cubeShader.setVec3("light.diffuse", diffuseColor); // darken diffuse light a bit
+        cubeShader.setVec3("light.specular", ambientColor);
+
+        cubeShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+        cubeShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+        cubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        cubeShader.setFloat("material.shininess", 32.0f);
 
         glBindVertexArray(cubeVAO);
         for (unsigned int i = 0; i < 10; i++)
@@ -295,6 +310,10 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.ProcessKeyboard(ASCEND, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.ProcessKeyboard(DESCEND, deltaTime);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
