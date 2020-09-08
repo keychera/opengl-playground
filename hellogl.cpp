@@ -195,7 +195,7 @@ int main()
         glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
         glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f);
 
-        cubeShader.setVec3("light.position", lightPos);
+        cubeShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
         cubeShader.setVec3("light.ambient", ambientColor);
         cubeShader.setVec3("light.diffuse", diffuseColor);
         cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
