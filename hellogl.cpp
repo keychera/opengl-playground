@@ -195,7 +195,10 @@ int main()
         glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
         glm::vec3 diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
 
-        cubeShader.setVec3("light.position", lightPos);
+        cubeShader.setVec3("light.position", camera.Position);
+        cubeShader.setVec3("light.direction", camera.Front);
+        cubeShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+        cubeShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
         cubeShader.setVec3("light.ambient", ambientColor);
         cubeShader.setVec3("light.diffuse", diffuseColor);
         cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
