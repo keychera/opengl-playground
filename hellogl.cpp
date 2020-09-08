@@ -157,16 +157,15 @@ int main()
     // load textures (we now use a utility function to keep the code more organized)
     // -----------------------------------------------------------------------------
     unsigned int diffuseMap = loadTexture(ASSETS_LOC "/container2.png");
+    unsigned int specularMap = loadTexture(ASSETS_LOC "/container2_specular.png");
 
     // shader configuration
     // --------------------
     cubeShader.use();
     cubeShader.setInt("material.diffuse", 0);
+    cubeShader.setInt("material.specular", 1);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    cubeShader.use();
-    cubeShader.setInt("material.diffuse", 0);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -205,9 +204,11 @@ int main()
         cubeShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
         cubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         cubeShader.setFloat("material.shininess", 32.0f);
-        
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
 
         glBindVertexArray(cubeVAO);
         for (unsigned int i = 0; i < 10; i++)
