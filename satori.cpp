@@ -16,7 +16,8 @@
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-unsigned int loadTexture(char const *path);
+unsigned int loadTexture(const char *path);
+unsigned int generateColorRamp(const float *data, int nColor);
 
 float mixVal = 0.35f;
 float zoomVal = 1.0f;
@@ -66,7 +67,7 @@ int main()
   glViewport(0, 0, 800, 600);
 
   // compile vertex and fragmentShader first
-  Shader squareShader(SHADERS_LOC "/satori.vs", SHADERS_LOC "/satori.fs");
+  Shader satoriShader(SHADERS_LOC "/satori.vs", SHADERS_LOC "/satori.fs");
   Shader lightCubeShader(SHADERS_LOC "/light_cube.vs", SHADERS_LOC "/light_cube.fs");
 
   // preparing datas to draw
@@ -77,7 +78,7 @@ int main()
       0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
       0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
       -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // for formatting
+      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // xyz, xy
   };
 
   int numOfVertexData = 5;
@@ -116,11 +117,22 @@ int main()
   unsigned int diffuseMap = loadTexture(ASSETS_LOC "/sprite_0093.png");
   unsigned int normalMap = loadTexture(ASSETS_LOC "/sprite_0093_n.png");
 
+  // Color Ramp
+  float colorRampData[] = {
+      0.54f, 0.40f, 0.39f, 1.0f,
+      0.73f, 0.54f, 0.52f, 1.0f,
+      0.73f, 0.54f, 0.52f, 1.0f,
+      0.93f, 0.76f, 0.72f, 1.0f, //rgba
+  };
+  int nColor = sizeof(colorRampData) / (sizeof(float) * 4);
+  unsigned int colorRamp = generateColorRamp(colorRampData, nColor);
+
   // shader configuration
   // --------------------
-  squareShader.use();
-  squareShader.setInt("material.diffuse", 0);
-  squareShader.setInt("material.normal", 1);
+  satoriShader.use();
+  satoriShader.setInt("material.diffuse", 0);
+  satoriShader.setInt("material.normal", 1);
+  satoriShader.setInt("material.colorRamp", 2);
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -146,27 +158,29 @@ int main()
     projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
     //Cubes
-    squareShader.use();
-    squareShader.setMat4("view", view);
-    squareShader.setMat4("projection", projection);
-    squareShader.setVec3("viewPos", camera.Position);
+    satoriShader.use();
+    satoriShader.setMat4("view", view);
+    satoriShader.setMat4("projection", projection);
+    satoriShader.setVec3("viewPos", camera.Position);
 
     glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
     glm::vec3 diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
 
-    squareShader.setVec3("light.position", lightPos);
-    squareShader.setVec3("light.ambient", ambientColor);
-    squareShader.setVec3("light.diffuse", diffuseColor);
+    satoriShader.setVec3("light.position", lightPos);
+    satoriShader.setVec3("light.ambient", ambientColor);
+    satoriShader.setVec3("light.diffuse", diffuseColor);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, normalMap);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_1D, colorRamp);
 
     glBindVertexArray(cubeVAO);
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 2.0f));
-    squareShader.setMat4("model", model);
+    satoriShader.setMat4("model", model);
     glDrawArrays(GL_TRIANGLES, 0, numOfTriangles);
 
     // light cube
@@ -284,7 +298,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 
 // utility function for loading a 2D texture from file
 // ---------------------------------------------------
-unsigned int loadTexture(char const *path)
+unsigned int loadTexture(const char *path)
 {
   unsigned int textureID;
   glGenTextures(1, &textureID);
@@ -317,6 +331,22 @@ unsigned int loadTexture(char const *path)
     std::cout << "Texture failed to load at path: " << path << std::endl;
     stbi_image_free(data);
   }
+
+  return textureID;
+}
+
+unsigned int generateColorRamp(const float *data, int nColor)
+{
+  unsigned int textureID;
+  glGenTextures(1, &textureID);
+
+  glBindTexture(GL_TEXTURE_1D, textureID);
+  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, nColor, 0, GL_RGBA, GL_FLOAT, data);
+
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   return textureID;
 }

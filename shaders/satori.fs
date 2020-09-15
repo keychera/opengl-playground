@@ -21,7 +21,9 @@ uniform Light light;
 struct Material {
   sampler2D diffuse;
   sampler2D normal;
+  sampler1D colorRamp;
 };
+
 uniform Material material;
 
 void main() {
@@ -38,18 +40,10 @@ void main() {
   float diff = max(dot(norm, lightDir), 0.0);
 
   // toon
-  vec3 color;
-  if (diff > 0.95)
-    color = vec3(1.0, 0.5, 0.5);
-  else if (diff > 0.5)
-    color = vec3(0.6, 0.3, 0.3);
-  else if (diff > 0.25)
-    color = vec3(0.4, 0.2, 0.2);
-  else
-    color = vec3(0.2, 0.1, 0.1);
+  vec3 color = texture(material.colorRamp, diff).rgb;
 
   // vec4 diffuse =
-  // vec4(light.diffuse, 1.0) * diff * texture(material.diffuse, TexCoords);
+  //     vec4(light.diffuse, 1.0) * diff * texture(material.diffuse, TexCoords);
 
   float a = texture(material.diffuse, TexCoords).a;
   vec4 result = ambient + vec4(color, a);
