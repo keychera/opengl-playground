@@ -114,25 +114,25 @@ int main()
   // load textures (we now use a utility function to keep the code more organized)
   // -----------------------------------------------------------------------------
   stbi_set_flip_vertically_on_load(true);
-  unsigned int diffuseMap = loadTexture(ASSETS_LOC "/sprite_0093.png");
-  unsigned int normalMap = loadTexture(ASSETS_LOC "/sprite_0093_n.png");
+  unsigned int diffuseMap = loadTexture(ASSETS_LOC "/satori_sprout.png");
+  unsigned int normalMap = loadTexture(ASSETS_LOC "/satori_sprout_n.png");
 
   // Color Ramp
-  float colorRampData[] = {
-      0.54f, 0.40f, 0.39f, 1.0f,
-      0.73f, 0.54f, 0.52f, 1.0f,
-      0.73f, 0.54f, 0.52f, 1.0f,
-      0.93f, 0.76f, 0.72f, 1.0f, //rgba
+  float lightRampData[] = {
+      1.0f, 1.0f, 1.0f, 1.0f,
+      0.6f, 0.4f, 0.4f, 1.0f,
+      0.55f, 0.35f, 0.35f, 1.0f,
+      0.5f, 0.3f, 0.3f, 1.0f, //rgba
   };
-  int nColor = sizeof(colorRampData) / (sizeof(float) * 4);
-  unsigned int colorRamp = generateColorRamp(colorRampData, nColor);
+  int nColor = sizeof(lightRampData) / (sizeof(float) * 4);
+  unsigned int lightRamp = generateColorRamp(lightRampData, nColor);
 
   // shader configuration
   // --------------------
   satoriShader.use();
   satoriShader.setInt("material.diffuse", 0);
   satoriShader.setInt("material.normal", 1);
-  satoriShader.setInt("material.colorRamp", 2);
+  satoriShader.setInt("light.colorRamp", 2);
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -142,7 +142,7 @@ int main()
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.43f, 0.67f, 0.79f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     float timeValue = glfwGetTime();
@@ -196,7 +196,7 @@ int main()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, normalMap);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_1D, colorRamp);
+    glBindTexture(GL_TEXTURE_1D, lightRamp);
 
     glBindVertexArray(satoriVAO);
     model = glm::mat4(1.0f);

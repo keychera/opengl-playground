@@ -15,39 +15,39 @@ struct Light {
   float constant;
   float linear;
   float quadratic;
+
+  sampler1D colorRamp;
 };
 uniform Light light;
 
 struct Material {
   sampler2D diffuse;
   sampler2D normal;
-  sampler1D colorRamp;
 };
 
 uniform Material material;
 
 void main() {
+  vec4 texel = texture(material.diffuse, TexCoords);
+  if (texel.a < 0.1)
+    discard;
+
   vec3 modLightPos = vec3(light.position.xy, 0);
   vec3 lightDir = normalize(modLightPos);
 
   // ambient
-  vec4 ambient =
-      vec4(light.ambient, 0.0) * texture(material.diffuse, TexCoords);
+  vec4 ambient = vec4(light.ambient, 0.0) * texel;
 
   // diffuse + normal
   vec3 normal = texture(material.normal, TexCoords).rgb;
-  vec3 norm = normalize(normal * 2.0 - 1.0);
+  vec3 norm = -1.0 * normalize(normal * 2.0 - 1.0);
   float diff = max(dot(norm, lightDir), 0.0);
 
   // toon
-  vec3 color = texture(material.colorRamp, diff).rgb;
+  vec4 lightFactor = texture(light.colorRamp, diff);
 
-  // vec4 diffuse =
-  //     vec4(light.diffuse, 1.0) * diff * texture(material.diffuse, TexCoords);
+  vec4 diffuse = vec4(light.diffuse, 1.0) * lightFactor * texel;
 
-  float a = texture(material.diffuse, TexCoords).a;
-  vec4 result = ambient + vec4(color, a);
-  if (result.a < 0.1)
-    discard;
-  FragColor = result;
+  vec4 result = ambient + diffuse;
+  FragColor = diffuse;
 }
