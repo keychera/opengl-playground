@@ -27,8 +27,8 @@ struct Material {
 uniform Material material;
 
 void main() {
-  vec3 modLightPos = vec3(light.position.xy, FragPos.z);
-  vec3 lightDir = normalize(modLightPos - FragPos);
+  vec3 modLightPos = vec3(light.position.xy, 0);
+  vec3 lightDir = normalize(modLightPos);
 
   // ambient
   vec4 ambient =
@@ -47,5 +47,7 @@ void main() {
 
   float a = texture(material.diffuse, TexCoords).a;
   vec4 result = ambient + vec4(color, a);
+  if (result.a < 0.1)
+    discard;
   FragColor = result;
 }

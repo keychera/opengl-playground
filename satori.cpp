@@ -38,7 +38,7 @@ bool firstMouse = true;
 unsigned int mode = 1;
 
 //light
-glm::vec3 lightPos(0.2f, 0.1f, 2.5f);
+glm::vec3 lightPos(0.1f, 0.0f, 1.0f);
 
 int main()
 {
@@ -84,13 +84,13 @@ int main()
   int numOfVertexData = 5;
   int numOfTriangles = sizeof(cube_vertices) / (sizeof(cube_vertices[0]) * numOfVertexData);
 
-  unsigned int cubeVBO, cubeVAO;
-  glGenBuffers(1, &cubeVBO);
-  glGenVertexArrays(1, &cubeVAO);
+  unsigned int satoriVBO, satoriVAO;
+  glGenBuffers(1, &satoriVBO);
+  glGenVertexArrays(1, &satoriVAO);
 
   //cube VAO/VBO
-  glBindVertexArray(cubeVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+  glBindVertexArray(satoriVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, satoriVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
 
   // position attribute
@@ -106,7 +106,7 @@ int main()
   glGenVertexArrays(1, &lightCubeVAO);
   glBindVertexArray(lightCubeVAO);
   // we only need to bind to the VBO, the container's VBO's data already contains the data.
-  glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, satoriVBO);
   // set the vertex attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
@@ -136,7 +136,6 @@ int main()
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -150,11 +149,33 @@ int main()
     deltaTime = timeValue - lastFrame;
     lastFrame = timeValue;
 
-    // view and projection for all object
     glm::mat4 model;
     glm::mat4 view;
-    view = camera.GetViewMatrix();
     glm::mat4 projection;
+
+    // lightPos circular motion
+    float r = 0.3f;
+    float freq = 0.5f;
+    float circX = r * cos(freq * timeValue);
+    float circY = r * sin(freq * timeValue);
+    lightPos = glm::vec3(circX, circY, 1.9f);
+
+    // light cube
+    lightCubeShader.use();
+    lightCubeShader.setMat4("view", view);
+    lightCubeShader.setMat4("projection", projection);
+
+    model = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::translate(model, lightPos);
+    model = glm::scale(model, glm::vec3(0.1f));
+    lightCubeShader.setMat4("model", model);
+
+    glBindVertexArray(lightCubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // view and projection for all object
+    view = camera.GetViewMatrix();
     projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
     //Cubes
@@ -177,32 +198,18 @@ int main()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_1D, colorRamp);
 
-    glBindVertexArray(cubeVAO);
+    glBindVertexArray(satoriVAO);
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 2.0f));
     satoriShader.setMat4("model", model);
     glDrawArrays(GL_TRIANGLES, 0, numOfTriangles);
 
-    // light cube
-    lightCubeShader.use();
-    lightCubeShader.setMat4("view", view);
-    lightCubeShader.setMat4("projection", projection);
-
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, lightPos);
-    model = glm::scale(model, glm::vec3(0.01f));
-    model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    lightCubeShader.setMat4("model", model);
-
-    glBindVertexArray(lightCubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
 
-  glDeleteVertexArrays(1, &cubeVAO);
-  glDeleteBuffers(1, &cubeVBO);
+  glDeleteVertexArrays(1, &satoriVAO);
+  glDeleteBuffers(1, &satoriVBO);
 
   glfwTerminate();
   return 0;
@@ -242,21 +249,21 @@ void processInput(GLFWwindow *window)
   if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
   {
     mode = 2;
-    lightPos = glm::vec3(0.2f, 0.1f, 2.5f);
+    // lightPos = glm::vec3(0.2f, 0.1f, 2.5f);
   }
 
   float speed = 0.3f * deltaTime;
   switch (mode)
   {
   case 1:
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-      lightPos += glm::vec3(0.0f, speed, 0.0f);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-      lightPos += glm::vec3(0.0f, -speed, 0.0f);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-      lightPos += glm::vec3(-speed, 0.0f, 0.0f);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-      lightPos += glm::vec3(speed, 0.0f, 0.0f);
+    // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    //   lightPos += glm::vec3(0.0f, speed, 0.0f);
+    // if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    //   lightPos += glm::vec3(0.0f, -speed, 0.0f);
+    // if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    //   lightPos += glm::vec3(-speed, 0.0f, 0.0f);
+    // if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    //   lightPos += glm::vec3(speed, 0.0f, 0.0f);
     break;
   default:
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
