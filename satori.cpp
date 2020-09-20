@@ -42,7 +42,7 @@ bool firstMouse = true;
 unsigned int mode = 1;
 
 //light
-glm::vec3 lightPos(0.1f, 0.0f, 1.0f);
+glm::vec3 lightPos;
 
 int main()
 {
@@ -155,10 +155,11 @@ int main()
     glm::mat4 projection;
 
     // lightPos circular motion
-    float r = 0.3f;
+    glm::vec2 origin(0.0f, -0.2f);
+    float r = 3.0f;
     float freq = 0.5f;
-    float circX = r * cos(freq * timeValue);
-    float circY = r * sin(freq * timeValue);
+    float circX = origin.x + (r * cos(freq * timeValue));
+    float circY = origin.y + (r * sin(freq * timeValue));
     lightPos = glm::vec3(circX, circY, 1.9f);
 
     // view and projection for all object
@@ -176,9 +177,8 @@ int main()
     sunShader.use();
 
     model = glm::mat4(1.0f);
-    model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(0.25f));
     model = glm::translate(model, lightPos);
-    model = glm::scale(model, glm::vec3(0.1f));
     sunShader.setMat4("model", model);
 
     glActiveTexture(GL_TEXTURE3);
