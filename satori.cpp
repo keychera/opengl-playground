@@ -68,7 +68,9 @@ int main()
 
   // compile vertex and fragmentShader first
   Shader satoriShader(SHADERS_LOC "tex.vs", SHADERS_LOC "satori.fs");
-  Shader sunShader(SHADERS_LOC "light_cube.vs", SHADERS_LOC "light_cube.fs");
+  Shader sunShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex.fs");
+  Shader terrainBgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex.fs");
+  Shader terrainFgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex.fs");
 
   // preparing datas to draw
   float square[] = {
@@ -84,13 +86,13 @@ int main()
   int numOfVertexData = 5;
   int numOfTriangles = sizeof(square) / (sizeof(square[0]) * numOfVertexData);
 
-  unsigned int satoriVBO, satoriVAO;
-  glGenBuffers(1, &satoriVBO);
+  unsigned int squareVBO, satoriVAO;
+  glGenBuffers(1, &squareVBO);
   glGenVertexArrays(1, &satoriVAO);
 
   //satori VAO/VBO
   glBindVertexArray(satoriVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, satoriVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(square), square, GL_STATIC_DRAW);
 
   // position attribute
@@ -106,16 +108,19 @@ int main()
   glGenVertexArrays(1, &sunVAO);
   glBindVertexArray(sunVAO);
   // we only need to bind to the VBO, the container's VBO's data already contains the data.
-  glBindBuffer(GL_ARRAY_BUFFER, satoriVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
   // set the vertex attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
 
   // load textures (we now use a utility function to keep the code more organized)
   // -----------------------------------------------------------------------------
   stbi_set_flip_vertically_on_load(true);
   unsigned int diffuseMap = loadTexture(ASSETS_LOC "satori_sprout.png");
   unsigned int normalMap = loadTexture(ASSETS_LOC "satori_sprout_n.png");
+  unsigned int sun = loadTexture(ASSETS_LOC "sun.png");
 
   // Color Ramp
   float lightRampData[] = {
@@ -133,6 +138,9 @@ int main()
   satoriShader.setInt("material.diffuse", 0);
   satoriShader.setInt("material.normal", 1);
   satoriShader.setInt("light.colorRamp", 2);
+
+  sunShader.use();
+  sunShader.setInt("material.diffuse", 3);
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -171,6 +179,9 @@ int main()
     model = glm::scale(model, glm::vec3(0.1f));
     sunShader.setMat4("model", model);
 
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, sun);
+
     glBindVertexArray(sunVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -206,7 +217,7 @@ int main()
   }
 
   glDeleteVertexArrays(1, &satoriVAO);
-  glDeleteBuffers(1, &satoriVBO);
+  glDeleteBuffers(1, &squareVBO);
 
   glfwTerminate();
   return 0;
