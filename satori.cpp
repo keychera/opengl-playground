@@ -42,7 +42,7 @@ bool firstMouse = true;
 unsigned int mode = 1;
 
 //light
-glm::vec3 lightPos;
+glm::vec3 sunPos;
 
 int main()
 {
@@ -73,8 +73,8 @@ int main()
   // compile vertex and fragmentShader first
   Shader satoriShader(SHADERS_LOC "tex.vs", SHADERS_LOC "satori.fs");
   Shader sunShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex.fs");
-  Shader terrainBgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex.fs");
-  Shader terrainFgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex.fs");
+  Shader terrainBgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex2.fs");
+  Shader terrainFgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex2.fs");
 
   // preparing datas to draw
   float square[] = {
@@ -108,10 +108,10 @@ int main()
 
   // Color Ramp
   float lightRampData[] = {
-      1.0f, 1.0f, 1.0f, 1.0f,
-      0.6f, 0.4f, 0.4f, 1.0f,
+      0.5f, 0.3f, 0.3f, 1.0f,
       0.55f, 0.35f, 0.35f, 1.0f,
-      0.5f, 0.3f, 0.3f, 1.0f, //rgba
+      0.6f, 0.4f, 0.4f, 1.0f,
+      1.0f, 1.0f, 1.0f, 1.0f, //rgba
   };
   int nColor = sizeof(lightRampData) / (sizeof(float) * 4);
   unsigned int lightRamp = generateColorRamp(lightRampData, nColor);
@@ -143,24 +143,27 @@ int main()
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
-    glClearColor(0.43f, 0.67f, 0.79f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     float timeValue = glfwGetTime();
     deltaTime = timeValue - lastFrame;
     lastFrame = timeValue;
+
+    float dayFreq = 0.5f;
+    float globalAmbient = 0.3f + (0.7f * fmax(sin(dayFreq * timeValue), 0.0f));
+
+    glm::vec4 sky = glm::vec4(0.43f, 0.67f, 0.79f, 1.0f) * globalAmbient;
+    glClearColor(sky.r, sky.g, sky.b, sky.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 projection;
 
-    // lightPos circular motion
-    glm::vec2 origin(0.0f, -0.2f);
+    // sun circular motion
+    glm::vec2 origin(0.0f, -2.0f);
     float r = 3.0f;
-    float freq = 0.5f;
-    float circX = origin.x + (r * cos(freq * timeValue));
-    float circY = origin.y + (r * sin(freq * timeValue));
-    lightPos = glm::vec3(circX, circY, 1.9f);
+    float circX = origin.x + (r * cos(dayFreq * timeValue));
+    float circY = origin.y + (r * sin(dayFreq * timeValue));
+    sunPos = glm::vec3(circX, circY, 1.9f);
 
     // view and projection for all object
     view = camera.GetViewMatrix();
@@ -178,7 +181,7 @@ int main()
 
     model = glm::mat4(1.0f);
     model = glm::scale(model, glm::vec3(0.25f));
-    model = glm::translate(model, lightPos);
+    model = glm::translate(model, sunPos);
     sunShader.setMat4("model", model);
 
     glActiveTexture(GL_TEXTURE3);
@@ -193,6 +196,8 @@ int main()
     model = glm::scale(model, glm::vec3(4.0f, 1.0f, 1.0f));
     model = glm::translate(model, glm::vec3(0.0f, -0.75f, 1.0f));
     terrainBgShader.setMat4("model", model);
+    terrainBgShader.setFloat("light.ambient", globalAmbient);
+    
 
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, terrainBg);
@@ -202,7 +207,9 @@ int main()
 
     //Cubes
     satoriShader.use();
-    satoriShader.setVec3("light.position", lightPos);
+    satoriShader.setVec3("light.position", sunPos);
+    satoriShader.setFloat("light.ambient", globalAmbient);
+    satoriShader.setFloat("light.intensity", fmax(sin(dayFreq * timeValue), 0.0f));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -222,6 +229,7 @@ int main()
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -0.95f, 2.1f));
     terrainFgShader.setMat4("model", model);
+    terrainFgShader.setFloat("light.ambient", globalAmbient);
 
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, terrainFg);
@@ -274,7 +282,7 @@ void processInput(GLFWwindow *window)
   if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
   {
     mode = 2;
-    // lightPos = glm::vec3(0.2f, 0.1f, 2.5f);
+    // sunPos = glm::vec3(0.2f, 0.1f, 2.5f);
   }
 
   float speed = 0.3f * deltaTime;
@@ -282,13 +290,13 @@ void processInput(GLFWwindow *window)
   {
   case 1:
     // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    //   lightPos += glm::vec3(0.0f, speed, 0.0f);
+    //   sunPos += glm::vec3(0.0f, speed, 0.0f);
     // if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    //   lightPos += glm::vec3(0.0f, -speed, 0.0f);
+    //   sunPos += glm::vec3(0.0f, -speed, 0.0f);
     // if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    //   lightPos += glm::vec3(-speed, 0.0f, 0.0f);
+    //   sunPos += glm::vec3(-speed, 0.0f, 0.0f);
     // if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    //   lightPos += glm::vec3(speed, 0.0f, 0.0f);
+    //   sunPos += glm::vec3(speed, 0.0f, 0.0f);
     break;
   default:
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
