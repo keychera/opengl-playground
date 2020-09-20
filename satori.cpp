@@ -19,6 +19,10 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 unsigned int loadTexture(const char *path);
 unsigned int generateColorRamp(const float *data, int nColor);
 
+int blockSize;
+unsigned int squareVBO;
+unsigned int buildSquareVAO();
+
 float mixVal = 0.35f;
 float zoomVal = 1.0f;
 
@@ -82,38 +86,16 @@ int main()
       -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
       -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // xyz, xy
   };
-
-  int numOfVertexData = 5;
-  int numOfTriangles = sizeof(square) / (sizeof(square[0]) * numOfVertexData);
-
-  unsigned int squareVBO, satoriVAO;
+  blockSize = 5;
+  int numOfTriangles = sizeof(square) / (sizeof(square[0]) * blockSize);
   glGenBuffers(1, &squareVBO);
-  glGenVertexArrays(1, &satoriVAO);
-
-  //satori VAO/VBO
-  glBindVertexArray(satoriVAO);
   glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(square), square, GL_STATIC_DRAW);
 
-  // position attribute
-  int blockSize = 5;
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-  // tex attribute
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  // light VAO
-  unsigned int sunVAO;
-  glGenVertexArrays(1, &sunVAO);
-  glBindVertexArray(sunVAO);
-  // we only need to bind to the VBO, the container's VBO's data already contains the data.
-  glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
-  // set the vertex attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
+  unsigned int satoriVAO = buildSquareVAO();
+  unsigned int sunVAO = buildSquareVAO();
+  unsigned int terrainBgVAO = buildSquareVAO();
+  unsigned int terrainFgVAO = buildSquareVAO();
 
   // load textures (we now use a utility function to keep the code more organized)
   // -----------------------------------------------------------------------------
@@ -121,6 +103,8 @@ int main()
   unsigned int diffuseMap = loadTexture(ASSETS_LOC "satori_sprout.png");
   unsigned int normalMap = loadTexture(ASSETS_LOC "satori_sprout_n.png");
   unsigned int sun = loadTexture(ASSETS_LOC "sun.png");
+  unsigned int terrainFg = loadTexture(ASSETS_LOC "terrain_bg.png");
+  unsigned int terrainBg = loadTexture(ASSETS_LOC "terrain_fg.png");
 
   // Color Ramp
   float lightRampData[] = {
@@ -141,6 +125,15 @@ int main()
 
   sunShader.use();
   sunShader.setInt("material.diffuse", 3);
+  terrainBgShader.use();
+  terrainBgShader.setInt("material.diffuse", 4);
+  terrainFgShader.use();
+  terrainFgShader.setInt("material.diffuse", 5);
+
+  // allshader in one array
+
+  Shader allShaders[] = {satoriShader, sunShader, terrainBgShader, terrainFgShader};
+  int numOfShaders = sizeof(allShaders) / sizeof(allShaders[0]);
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -168,10 +161,19 @@ int main()
     float circY = r * sin(freq * timeValue);
     lightPos = glm::vec3(circX, circY, 1.9f);
 
-    // light cube
+    // view and projection for all object
+    view = camera.GetViewMatrix();
+    projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+    for (int i = 0; i < numOfShaders; i++)
+    {
+      allShaders[i].use();
+      allShaders[i].setMat4("view", view);
+      allShaders[i].setMat4("projection", projection);
+    }
+
+    // sun
     sunShader.use();
-    sunShader.setMat4("view", view);
-    sunShader.setMat4("projection", projection);
 
     model = glm::mat4(1.0f);
     model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -185,18 +187,21 @@ int main()
     glBindVertexArray(sunVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    // view and projection for all object
-    view = camera.GetViewMatrix();
-    projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    // terrainBg
+    terrainBgShader.use();
+    model = glm::mat4(1.0f);
+    model = glm::scale(model, glm::vec3(4.0f, 1.0f, 1.0f));
+    model = glm::translate(model, glm::vec3(0.0f, -0.75f, 1.0f));
+    terrainBgShader.setMat4("model", model);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, terrainBg);
+
+    glBindVertexArray(terrainBgVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     //Cubes
     satoriShader.use();
-    satoriShader.setMat4("view", view);
-    satoriShader.setMat4("projection", projection);
-
-    glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
-    glm::vec3 diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
-
     satoriShader.setVec3("light.position", lightPos);
 
     glActiveTexture(GL_TEXTURE0);
@@ -208,9 +213,21 @@ int main()
 
     glBindVertexArray(satoriVAO);
     model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 2.0f));
+    model = glm::translate(model, glm::vec3(0.035f, 0.0f, 2.0f));
     satoriShader.setMat4("model", model);
     glDrawArrays(GL_TRIANGLES, 0, numOfTriangles);
+
+    // terrainFg
+    terrainFgShader.use();
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -0.95f, 2.1f));
+    terrainFgShader.setMat4("model", model);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, terrainFg);
+
+    glBindVertexArray(terrainFgVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -364,4 +381,17 @@ unsigned int generateColorRamp(const float *data, int nColor)
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   return textureID;
+}
+
+unsigned int buildSquareVAO()
+{
+  unsigned int VAO;
+  glGenVertexArrays(1, &VAO);
+  glBindVertexArray(VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, blockSize * sizeof(float), (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  return VAO;
 }
