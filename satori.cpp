@@ -10,8 +10,8 @@
 #include "headers/Camera.h"
 #include "headers/stb_image.h"
 
-#define SHADERS_LOC "shaders"
-#define ASSETS_LOC "assets"
+#define SHADERS_LOC "shaders/"
+#define ASSETS_LOC "assets/"
 
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -27,7 +27,7 @@ float lastFrame = 0.0f; // Time of last frame
 
 // settings
 const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_HEIGHT = 800;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
@@ -64,14 +64,14 @@ int main()
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
-  glViewport(0, 0, 800, 600);
+  glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
   // compile vertex and fragmentShader first
-  Shader satoriShader(SHADERS_LOC "/satori.vs", SHADERS_LOC "/satori.fs");
-  Shader lightCubeShader(SHADERS_LOC "/light_cube.vs", SHADERS_LOC "/light_cube.fs");
+  Shader satoriShader(SHADERS_LOC "tex.vs", SHADERS_LOC "satori.fs");
+  Shader sunShader(SHADERS_LOC "light_cube.vs", SHADERS_LOC "light_cube.fs");
 
   // preparing datas to draw
-  float cube_vertices[] = {
+  float square[] = {
       // positions          // texture coords
       -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
       0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
@@ -82,16 +82,16 @@ int main()
   };
 
   int numOfVertexData = 5;
-  int numOfTriangles = sizeof(cube_vertices) / (sizeof(cube_vertices[0]) * numOfVertexData);
+  int numOfTriangles = sizeof(square) / (sizeof(square[0]) * numOfVertexData);
 
   unsigned int satoriVBO, satoriVAO;
   glGenBuffers(1, &satoriVBO);
   glGenVertexArrays(1, &satoriVAO);
 
-  //cube VAO/VBO
+  //satori VAO/VBO
   glBindVertexArray(satoriVAO);
   glBindBuffer(GL_ARRAY_BUFFER, satoriVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(square), square, GL_STATIC_DRAW);
 
   // position attribute
   int blockSize = 5;
@@ -102,9 +102,9 @@ int main()
   glEnableVertexAttribArray(1);
 
   // light VAO
-  unsigned int lightCubeVAO;
-  glGenVertexArrays(1, &lightCubeVAO);
-  glBindVertexArray(lightCubeVAO);
+  unsigned int sunVAO;
+  glGenVertexArrays(1, &sunVAO);
+  glBindVertexArray(sunVAO);
   // we only need to bind to the VBO, the container's VBO's data already contains the data.
   glBindBuffer(GL_ARRAY_BUFFER, satoriVBO);
   // set the vertex attribute
@@ -114,8 +114,8 @@ int main()
   // load textures (we now use a utility function to keep the code more organized)
   // -----------------------------------------------------------------------------
   stbi_set_flip_vertically_on_load(true);
-  unsigned int diffuseMap = loadTexture(ASSETS_LOC "/satori_sprout.png");
-  unsigned int normalMap = loadTexture(ASSETS_LOC "/satori_sprout_n.png");
+  unsigned int diffuseMap = loadTexture(ASSETS_LOC "satori_sprout.png");
+  unsigned int normalMap = loadTexture(ASSETS_LOC "satori_sprout_n.png");
 
   // Color Ramp
   float lightRampData[] = {
@@ -161,17 +161,17 @@ int main()
     lightPos = glm::vec3(circX, circY, 1.9f);
 
     // light cube
-    lightCubeShader.use();
-    lightCubeShader.setMat4("view", view);
-    lightCubeShader.setMat4("projection", projection);
+    sunShader.use();
+    sunShader.setMat4("view", view);
+    sunShader.setMat4("projection", projection);
 
     model = glm::mat4(1.0f);
     model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::translate(model, lightPos);
     model = glm::scale(model, glm::vec3(0.1f));
-    lightCubeShader.setMat4("model", model);
+    sunShader.setMat4("model", model);
 
-    glBindVertexArray(lightCubeVAO);
+    glBindVertexArray(sunVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // view and projection for all object
@@ -182,14 +182,11 @@ int main()
     satoriShader.use();
     satoriShader.setMat4("view", view);
     satoriShader.setMat4("projection", projection);
-    satoriShader.setVec3("viewPos", camera.Position);
 
     glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
     glm::vec3 diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
 
     satoriShader.setVec3("light.position", lightPos);
-    satoriShader.setVec3("light.ambient", ambientColor);
-    satoriShader.setVec3("light.diffuse", diffuseColor);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
