@@ -29,7 +29,9 @@ void main() {
   vec3 lightDir = normalize(vec3(light.position.xy, 0));
   vec3 normal = texture(material.normal, TexCoords).rgb;
   vec3 modNormal = normalize(normal * 2.0 - 1.0);
-  float intensity = max(dot(modNormal, lightDir), 0.0);
+  float dotVal = dot(modNormal, lightDir);
+  dotVal = pow(cos((dotVal * 0.7853) - 0.8), 1.4);
+  float intensity = max(dotVal, 0.0);
   intensity *= light.intensity;
 
   // toon

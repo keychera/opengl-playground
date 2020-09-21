@@ -111,6 +111,8 @@ int main()
       0.5f, 0.3f, 0.3f, 1.0f,
       0.55f, 0.35f, 0.35f, 1.0f,
       0.6f, 0.4f, 0.4f, 1.0f,
+      0.8f, 0.7f, 0.7f, 1.0f,
+      0.9f, 0.8f, 0.8f, 1.0f,
       1.0f, 1.0f, 1.0f, 1.0f, //rgba
   };
   int nColor = sizeof(lightRampData) / (sizeof(float) * 4);
