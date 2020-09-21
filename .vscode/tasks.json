@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "C/C++: g++.exe build active file",
+      "command": "${env:MINGW_HOME}/bin/g++.exe",
+      "args": [
+        "-g",
+        "${fileBasenameNoExtension}.cpp",
+        "glad.c",
+        "stb_image.cpp",
+        "-o",
+        "${workspaceFolder}/${fileBasenameNoExtension}.exe",
+        "-I",
+        "${env:MINGW_HOME}/include",
+        "-L",
+        "${env:MINGW_HOME}/lib",
+        "-lopengl32",
+        "-lglfw3",
+        "-lgdi32"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
