@@ -11,7 +11,7 @@
         "glad.c",
         "stb_image.cpp",
         "-o",
-        "${workspaceFolder}/${fileBasenameNoExtension}.exe",
+        "${fileBasenameNoExtension}.exe",
         "-I",
         "${env:MINGW_HOME}/include",
         "-L",
@@ -21,7 +21,7 @@
         "-lgdi32"
       ],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${fileDirname}"
       },
       "problemMatcher": [
         "$gcc"
