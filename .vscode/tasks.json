@@ -11,7 +11,7 @@
         "glad.c",
         "stb_image.cpp",
         "-o",
-        "${fileBasenameNoExtension}.exe",
+        "build/${fileBasenameNoExtension}.exe",
         "-I",
         "${env:MINGW_HOME}/include",
         "-L",
@@ -29,7 +29,53 @@
       "group": {
         "kind": "build",
         "isDefault": true
-      }
+      },
+      "dependsOn": [
+        "make build dir"
+      ]
+    },
+    {
+      "type": "shell",
+      "label": "C/C++: emcc build to js",
+      "command": "emcc",
+      "args": [
+        "-g",
+        "${fileBasenameNoExtension}.cpp",
+        "glad.c",
+        "stb_image.cpp",
+        "-o",
+        "build/${fileBasenameNoExtension}.js",
+        "-I",
+        "${env:MINGW_HOME}/include",
+        "-L",
+        "${env:MINGW_HOME}/lib",
+        "-lglfw3",
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": [
+        "make build dir"
+      ]
+    },
+    {
+      "type": "shell",
+      "label": "make build dir",
+      "command": "cmd",
+      "args": [
+        "/C",
+        "if not exist .\\build mkdir .\\build"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      },
     }
   ]
 }

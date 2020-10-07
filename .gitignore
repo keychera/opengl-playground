@@ -14,5 +14,6 @@
 # Todo+
 TODO
 
-# prototypes
+# releases
 proto/
+build/
