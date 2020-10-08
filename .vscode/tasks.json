@@ -39,17 +39,17 @@
       "label": "C/C++: emcc build to js",
       "command": "emcc",
       "args": [
-        "-g",
         "${fileBasenameNoExtension}.cpp",
-        "glad.c",
-        "stb_image.cpp",
         "-o",
-        "build/${fileBasenameNoExtension}.js",
-        "-I",
-        "${env:MINGW_HOME}/include",
-        "-L",
-        "${env:MINGW_HOME}/lib",
-        "-lglfw3",
+        "build/${fileBasenameNoExtension}.html",
+        "-std=c++11",
+        "-s",
+        "WASM=1",
+        "-s",
+        "USE_SDL=2",
+        "-O3",
+        "--shell-file",
+        "html/shell.html"
       ],
       "options": {
         "cwd": "${fileDirname}"
@@ -71,11 +71,28 @@
       "command": "cmd",
       "args": [
         "/C",
-        "if not exist .\\build mkdir .\\build"
+        "if not exist ./build mkdir ./build"
       ],
       "options": {
         "cwd": "${fileDirname}"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "serve build dir",
+      "command": "python",
+      "args": [
+        "-m",
+        "SimpleHTTPServer",
+        "8080"
+      ],
+      "options": {
+        "cwd": "${fileDirname}/build"
       },
+      "dependsOn": [
+        "make build dir"
+      ],
+      "problemMatcher": []
     }
   ]
 }
