@@ -1,3 +1,5 @@
+// source https://github.com/timhutton/opengl-canvas-wasm
+
 #include <functional>
 
 #define __EMSCRIPTEN__ 1
