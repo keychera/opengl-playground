@@ -10,6 +10,7 @@
         "${fileBasenameNoExtension}.cpp",
         "glad.c",
         "stb_image.cpp",
+        "util.cpp",
         "-o",
         "build/${fileBasenameNoExtension}.exe",
         "-I",
@@ -48,6 +49,8 @@
         "-s",
         "USE_SDL=2",
         "-O3",
+        "-s",
+        "ASSERTIONS=1",
         "--shell-file",
         "html/shell.html"
       ],
