@@ -1,10 +1,11 @@
 #include <functional>
 
+#define __EMSCRIPTEN__ 1
 #include <emscripten.h>
 #include <SDL.h>
 
 #define GL_GLEXT_PROTOTYPES 1
-#include <SDL_opengles2.h>
+#include <SDL_opengl.h>
 
 // Shader sources
 const GLchar *vertexSource =
@@ -32,7 +33,7 @@ int main()
 {
     SDL_Window *window;
     SDL_CreateWindowAndRenderer(640, 480, 0, &window, nullptr);
-
+\
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

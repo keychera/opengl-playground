@@ -49,8 +49,6 @@
         "-s",
         "USE_SDL=2",
         "-O3",
-        "-s",
-        "ASSERTIONS=1",
         "--shell-file",
         "html/shell.html"
       ],
@@ -86,7 +84,7 @@
       "command": "python",
       "args": [
         "-m",
-        "SimpleHTTPServer",
+        "http.server",
         "8080"
       ],
       "options": {
