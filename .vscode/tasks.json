@@ -44,7 +44,7 @@
         "stb_image.cpp",
         "util.cpp",
         "-o",
-        "build/${fileBasenameNoExtension}.html",
+        "build/em/${fileBasenameNoExtension}.html",
         "-std=c++11",
         "-s",
         "WASM=1",
@@ -74,7 +74,7 @@
         "isDefault": true
       },
       "dependsOn": [
-        "make build dir"
+        "make em build dir"
       ]
     },
     {
@@ -83,7 +83,19 @@
       "command": "cmd",
       "args": [
         "/C",
-        "if not exist ./build mkdir ./build"
+        "if not exist .\\build mkdir .\\build"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "make em build dir",
+      "command": "cmd",
+      "args": [
+        "/C",
+        "if not exist .\\build\\em mkdir .\\build\\em"
       ],
       "options": {
         "cwd": "${fileDirname}"
@@ -99,10 +111,10 @@
         "8080"
       ],
       "options": {
-        "cwd": "${fileDirname}/build"
+        "cwd": "${fileDirname}/build/em"
       },
       "dependsOn": [
-        "make build dir"
+        "make em build dir"
       ],
       "problemMatcher": []
     }

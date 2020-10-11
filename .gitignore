@@ -17,3 +17,6 @@ TODO
 # releases
 proto/
 build/
+
+# node_modules
+node_modules/
