@@ -3,6 +3,7 @@
 #define __EMSCRIPTEN__ 1
 #include <emscripten/emscripten.h>
 #include <SDL.h>
+#include <SDL_image.h>
 
 #define GL_GLEXT_PROTOTYPES 1
 #include <SDL_opengl.h>
@@ -23,8 +24,14 @@ const unsigned int SCR_HEIGHT = 480;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
+// system
 std::function<void()> loop;
 void main_loop() { loop(); }
+
+float deltaTime = 0.0f; // Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
+int loadTextureSDL(const char *filename);
 
 int main()
 {
@@ -82,12 +89,10 @@ int main()
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f // for formatting
     };
 
-    unsigned int cubeVBO, cubeVAO;
+    unsigned int cubeVBO;
     glGenBuffers(1, &cubeVBO);
-    glGenVertexArrays(1, &cubeVAO);
 
     //cube VAO/VBO
-    glBindVertexArray(cubeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
 
@@ -107,8 +112,8 @@ int main()
 
     // load textures
     // -----------------------------------------------------------------------------
-    unsigned int diffuseMap = loadTexture(ASSETS_LOC "/container2.png");
-    unsigned int specularMap = loadTexture(ASSETS_LOC "/container2_specular.png");
+    unsigned int diffuseMap = loadTextureSDL(ASSETS_LOC "/container2.png");
+    unsigned int specularMap = loadTextureSDL(ASSETS_LOC "/container2_specular.png");
 
     // shader configuration
     // --------------------
@@ -121,6 +126,10 @@ int main()
     loop = [&] {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        float timeValue = SDL_GetTicks();
+        deltaTime = timeValue - lastFrame;
+        lastFrame = timeValue;
 
         // view and projection for all object
         glm::mat4 model;
@@ -160,9 +169,8 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
-        glBindVertexArray(cubeVAO);
         model = glm::mat4(1.0f);
-        float angle = 20.0f;
+        float angle = 20.0f * timeValue * 0.002;
         model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
         cubeShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -173,4 +181,57 @@ int main()
     emscripten_set_main_loop(main_loop, 0, true);
 
     return EXIT_SUCCESS;
+}
+
+int loadTextureSDL(const char *filename)
+{
+    // source: https://gist.github.com/mortennobel/0e9e90c9bbc61cc99d5c3e9c038d8115
+    unsigned int texture;
+
+    /* Create storage space for the texture */
+    SDL_Surface *image;
+    image = IMG_Load(filename);
+    if (image)
+    {
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        std::cout << "Loaded " << image->w << " " << image->h << std::endl;
+
+        // Enforce RGB / RGBA
+        GLenum format;
+        SDL_Surface *formattedImage;
+        if (image->format->BytesPerPixel == 3)
+        {
+
+            formattedImage = SDL_ConvertSurfaceFormat(image,
+                                                      SDL_PIXELFORMAT_RGB24,
+                                                      0);
+            format = GL_RGB;
+        }
+        else
+        {
+            formattedImage = SDL_ConvertSurfaceFormat(image,
+                                                      SDL_PIXELFORMAT_RGBA32,
+                                                      0);
+            format = GL_RGBA;
+        }
+
+        /* Generate The Texture */
+        glTexImage2D(GL_TEXTURE_2D, 0, format, formattedImage->w,
+                     formattedImage->h, 0, format,
+                     GL_UNSIGNED_BYTE, formattedImage->pixels);
+
+        /* Linear Filtering */
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+    else
+    {
+        std::cout << "Cannot load " << filename << ",Error: " << IMG_GetError() << std::endl;
+    }
+    SDL_FreeSurface(image);
+    return texture;
 }

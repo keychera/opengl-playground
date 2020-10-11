@@ -50,13 +50,18 @@
         "WASM=1",
         "-s",
         "USE_SDL=2",
-        "-O3",
+        "-s",
+        "USE_SDL_IMAGE=2 ",
+        "-s",
+        "SDL2_IMAGE_FORMATS=\"[\"\"png\"\"]\"",
+        "-O2",
         "-I",
         "${env:MINGW_HOME}/include",
         "--preload-file",
         "emscripten",
         "--shell-file",
-        "html/shell.html"
+        "html/shell.html",
+        "--use-preload-plugins"
       ],
       "options": {
         "cwd": "${fileDirname}"
