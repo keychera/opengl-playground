@@ -33,6 +33,33 @@ float lastFrame = 0.0f; // Time of last frame
 
 int loadTextureSDL(const char *filename);
 
+// extern
+#define jsfunc extern "C" void __attribute__((used))
+jsfunc control_forward()
+{
+    camera.ProcessKeyboard(FORWARD, deltaTime);
+}
+jsfunc control_left()
+{
+    camera.ProcessKeyboard(LEFT, deltaTime);
+}
+jsfunc control_backward()
+{
+    camera.ProcessKeyboard(BACKWARD, deltaTime);
+}
+jsfunc control_right()
+{
+    camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+jsfunc control_ascend()
+{
+    camera.ProcessKeyboard(ASCEND, deltaTime);
+}
+jsfunc control_descend()
+{
+    camera.ProcessKeyboard(DESCEND, deltaTime);
+}
+
 int main()
 {
     SDL_Window *window;
@@ -89,6 +116,18 @@ int main()
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f // for formatting
     };
 
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.0f, 5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f, 3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f, 2.0f, -2.5f),
+        glm::vec3(1.5f, 0.2f, -1.5f),
+        glm::vec3(-1.3f, 1.0f, -1.5f)};
+
     unsigned int cubeVBO;
     glGenBuffers(1, &cubeVBO);
 
@@ -123,6 +162,8 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
+    camera.MovementSpeed = 0.006f;
+
     loop = [&] {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -130,7 +171,6 @@ int main()
         float timeValue = SDL_GetTicks();
         deltaTime = timeValue - lastFrame;
         lastFrame = timeValue;
-
         // view and projection for all object
         glm::mat4 model;
         glm::mat4 view;
@@ -151,6 +191,7 @@ int main()
         cubeShader.setVec3("light.direction", camera.Front);
         cubeShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
         cubeShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+
         cubeShader.setVec3("light.ambient", ambientColor);
         cubeShader.setVec3("light.diffuse", diffuseColor);
         cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
@@ -159,9 +200,6 @@ int main()
         cubeShader.setFloat("light.linear", 0.09f);
         cubeShader.setFloat("light.quadratic", 0.032f);
 
-        cubeShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-        cubeShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-        cubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         cubeShader.setFloat("material.shininess", 32.0f);
 
         glActiveTexture(GL_TEXTURE0);
@@ -169,11 +207,17 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
-        model = glm::mat4(1.0f);
-        float angle = 20.0f * timeValue * 0.002;
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-        cubeShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            float angle = 20.0f * i;
+            model = glm::mat4(1.0f);
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            // model = glm::rotate(model, (float)timeValue * glm::radians(50.0f), glm::vec3(0.5f, sin(timeValue) * 0.5f, 0.0f));
+            model = glm::translate(model, cubePositions[i]);
+            cubeShader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         SDL_GL_SwapWindow(window);
     };
