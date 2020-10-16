@@ -12,7 +12,7 @@
 .history/
 
 # Todo+
-TODO
+*.TODO
 
 # releases
 proto/

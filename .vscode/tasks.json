@@ -44,7 +44,7 @@
         "stb_image.cpp",
         "util.cpp",
         "-o",
-        "build/em/${fileBasenameNoExtension}.html",
+        "build/em/${fileBasenameNoExtension}.js",
         "-std=c++11",
         "-s",
         "WASM=1",
@@ -59,8 +59,6 @@
         "${env:MINGW_HOME}/include",
         "--preload-file",
         "emscripten",
-        "--shell-file",
-        "html/shell.html",
         "--use-preload-plugins"
       ],
       "options": {
@@ -72,6 +70,21 @@
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "dependsOn": [
+        "copy skeleton html to build/em"
+      ]
+    },
+    {
+      "type": "shell",
+      "label": "copy skeleton html to build/em",
+      "command": "cp",
+      "args": [
+        "./html/${fileBasenameNoExtension}.index.html",
+        "./build/em/${fileBasenameNoExtension}.index.html"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
       },
       "dependsOn": [
         "make em build dir"
