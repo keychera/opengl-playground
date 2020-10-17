@@ -128,12 +128,27 @@
         "8080"
       ],
       "options": {
+        "cwd": "${fileDirname}/build"
+      },
+      "dependsOn": [
+        "make build dir"
+      ]
+    },
+    {
+      "type": "shell",
+      "label": "serve build/em dir",
+      "command": "python",
+      "args": [
+        "-m",
+        "http.server",
+        "8080"
+      ],
+      "options": {
         "cwd": "${fileDirname}/build/em"
       },
       "dependsOn": [
         "make em build dir"
-      ],
-      "problemMatcher": []
+      ]
     }
   ]
 }
