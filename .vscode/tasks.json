@@ -41,8 +41,6 @@
       "command": "emcc",
       "args": [
         "${fileBasenameNoExtension}.cpp",
-        "stb_image.cpp",
-        "util.cpp",
         "-o",
         "build/em/${fileBasenameNoExtension}.js",
         "-std=c++11",
@@ -56,6 +54,8 @@
         "SDL2_IMAGE_FORMATS=\"[\"\"png\"\"]\"",
         "-s",
         "MODULARIZE=1",
+        "-s",
+        "INITIAL_MEMORY=64MB",
         "-s",
         "EXPORT_NAME=\"glModule\"",
         "-O2",

@@ -11,9 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "headers/shader_s.h"
-#include "headers/stb_image.h"
 #include "headers/Camera.h"
-#include "headers/util.h"
 
 #define SHADERS_LOC "emscripten/shaders"
 #define ASSETS_LOC "emscripten/assets"

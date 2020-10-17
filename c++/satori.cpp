@@ -20,7 +20,16 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 unsigned int loadTexture(const char *path);
 unsigned int generateColorRamp(const float *data, int nColor);
 
-int blockSize;
+int blockSize = 5;
+float square[] = {
+    // positions          // texture coords
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // xyz, xy
+};
 unsigned int squareVBO;
 unsigned int buildSquareVAO();
 
@@ -71,24 +80,13 @@ int main()
   }
   glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-  // compile vertex and fragmentShader first
+  // compile vertex and fragmentShader
   Shader satoriShader(SHADERS_LOC "tex.vs", SHADERS_LOC "satori.fs");
   Shader sunShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex.fs");
   Shader terrainBgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex2.fs");
   Shader terrainFgShader(SHADERS_LOC "tex.vs", SHADERS_LOC "tex2.fs");
 
-  // preparing datas to draw
-  float square[] = {
-      // positions          // texture coords
-      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-      0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-      0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-      0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-      -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // xyz, xy
-  };
-  blockSize = 5;
-  int numOfTriangles = sizeof(square) / (sizeof(square[0]) * blockSize);
+  // preparing VAOs
   glGenBuffers(1, &squareVBO);
   glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(square), square, GL_STATIC_DRAW);
@@ -99,7 +97,6 @@ int main()
   unsigned int terrainFgVAO = buildSquareVAO();
 
   // load textures (we now use a utility function to keep the code more organized)
-  // -----------------------------------------------------------------------------
   stbi_set_flip_vertically_on_load(true);
   unsigned int diffuseMap = loadTexture(ASSETS_LOC "satori_sprout.png");
   unsigned int normalMap = loadTexture(ASSETS_LOC "satori_sprout_n.png");
@@ -120,7 +117,6 @@ int main()
   unsigned int lightRamp = generateColorRamp(lightRampData, nColor);
 
   // shader configuration
-  // --------------------
   satoriShader.use();
   satoriShader.setInt("material.diffuse", 0);
   satoriShader.setInt("material.normal", 1);
@@ -134,12 +130,11 @@ int main()
   terrainFgShader.setInt("material.diffuse", 5);
 
   // allshader in one array
-
   Shader allShaders[] = {satoriShader, sunShader, terrainBgShader, terrainFgShader};
   int numOfShaders = sizeof(allShaders) / sizeof(allShaders[0]);
+  int numOfTriangles = sizeof(square) / (sizeof(square[0]) * blockSize);
 
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+  // gl settings
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -157,9 +152,18 @@ int main()
     glClearColor(sky.r, sky.g, sky.b, sky.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // view and projection for all object
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 projection;
+    view = camera.GetViewMatrix();
+    projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    for (int i = 0; i < numOfShaders; i++)
+    {
+      allShaders[i].use();
+      allShaders[i].setMat4("view", view);
+      allShaders[i].setMat4("projection", projection);
+    }
 
     // sun circular motion
     glm::vec2 origin(0.0f, -2.0f);
@@ -167,17 +171,6 @@ int main()
     float circX = origin.x + (r * cos(dayFreq * timeValue));
     float circY = origin.y + (r * sin(dayFreq * timeValue));
     sunPos = glm::vec3(circX, circY, 1.9f);
-
-    // view and projection for all object
-    view = camera.GetViewMatrix();
-    projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-    for (int i = 0; i < numOfShaders; i++)
-    {
-      allShaders[i].use();
-      allShaders[i].setMat4("view", view);
-      allShaders[i].setMat4("projection", projection);
-    }
 
     // sun
     sunShader.use();
@@ -200,7 +193,6 @@ int main()
     model = glm::translate(model, glm::vec3(0.0f, -0.75f, 1.0f));
     terrainBgShader.setMat4("model", model);
     terrainBgShader.setFloat("light.ambient", globalAmbient);
-    
 
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, terrainBg);
@@ -208,7 +200,7 @@ int main()
     glBindVertexArray(terrainBgVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    //Cubes
+    // satori
     satoriShader.use();
     satoriShader.setVec3("light.position", sunPos);
     satoriShader.setFloat("light.ambient", globalAmbient);
