@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "6aa2b3bd1a17095035c7fa38790931df",
+    "revision": "c1d0410cca27fbb31a86ddb2f4973caa",
     "url": "/opengl-playground/index.html"
   },
   {
-    "revision": "84fd43a4649637754c9c",
+    "revision": "d579055961226618a1d8",
     "url": "/opengl-playground/static/css/main.5f361e03.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/opengl-playground/static/js/2.7d6ea1ea.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "84fd43a4649637754c9c",
-    "url": "/opengl-playground/static/js/main.a444671b.chunk.js"
+    "revision": "d579055961226618a1d8",
+    "url": "/opengl-playground/static/js/main.6b5c914b.chunk.js"
   },
   {
     "revision": "4be56162fbc75c4604ef",
