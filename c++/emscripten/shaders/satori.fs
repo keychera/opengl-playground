@@ -34,7 +34,7 @@ void main() {
   intensity *= light.intensity;
 
   // toon
-  vec4 lightFactor = texture2D(light.colorRamp, vec2(intensity, 0.0));
+  vec4 lightFactor = texture2D(light.colorRamp, vec2(intensity, 0.5));
 
   vec4 result = lightFactor * texel * vec4(vec3(light.ambient), 1.0);
   gl_FragColor = result;

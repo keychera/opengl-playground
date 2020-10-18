@@ -117,9 +117,10 @@ int main()
         float timeValue = SDL_GetTicks();
         deltaTime = timeValue - lastFrame;
         lastFrame = timeValue;
+        float loopval = timeValue / 1000;
 
         float dayFreq = 0.5f;
-        float globalAmbient = 0.3f + (0.7f * fmax(sin(dayFreq * timeValue), 0.0f));
+        float globalAmbient = 0.3f + (0.7f * fmax(sin(dayFreq * loopval), 0.0f));
 
         glm::vec4 sky = glm::vec4(0.43f, 0.67f, 0.79f, 1.0f) * globalAmbient;
         glClearColor(sky.r, sky.g, sky.b, sky.a);
@@ -141,8 +142,8 @@ int main()
         // sun circular motion
         glm::vec2 origin(0.0f, -2.0f);
         float r = 3.0f;
-        float circX = origin.x + (r * cos(dayFreq * timeValue));
-        float circY = origin.y + (r * sin(dayFreq * timeValue));
+        float circX = origin.x + (r * cos(dayFreq * loopval));
+        float circY = origin.y + (r * sin(dayFreq * loopval));
         sunPos = glm::vec3(circX, circY, 1.9f);
 
         // sun
@@ -177,7 +178,7 @@ int main()
         satoriShader.use();
         satoriShader.setVec3("light.position", sunPos);
         satoriShader.setFloat("light.ambient", globalAmbient);
-        satoriShader.setFloat("light.intensity", fmax(sin(dayFreq * timeValue), 0.0f));
+        satoriShader.setFloat("light.intensity", fmax(sin(dayFreq * loopval), 0.0f));
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -275,10 +276,10 @@ unsigned int generateColorRamp(const float *data, int nColor)
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nColor, 1, 0, GL_RGBA, GL_FLOAT, data);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     return textureID;
 }
