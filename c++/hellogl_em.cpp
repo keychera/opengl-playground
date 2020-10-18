@@ -12,6 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "headers/shader_s.h"
 #include "headers/Camera.h"
+#include "headers/util_em.h"
 
 #define SHADERS_LOC "emscripten/shaders"
 #define ASSETS_LOC "emscripten/assets"
@@ -28,8 +29,6 @@ void main_loop() { loop(); }
 
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
-
-int loadTextureSDL(const char *filename);
 
 // extern
 #define jsfunc extern "C" void __attribute__((used))
@@ -223,57 +222,4 @@ int main()
     emscripten_set_main_loop(main_loop, 0, true);
 
     return EXIT_SUCCESS;
-}
-
-int loadTextureSDL(const char *filename)
-{
-    // source: https://gist.github.com/mortennobel/0e9e90c9bbc61cc99d5c3e9c038d8115
-    unsigned int texture;
-
-    /* Create storage space for the texture */
-    SDL_Surface *image;
-    image = IMG_Load(filename);
-    if (image)
-    {
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-        std::cout << "Loaded " << image->w << " " << image->h << std::endl;
-
-        // Enforce RGB / RGBA
-        GLenum format;
-        SDL_Surface *formattedImage;
-        if (image->format->BytesPerPixel == 3)
-        {
-
-            formattedImage = SDL_ConvertSurfaceFormat(image,
-                                                      SDL_PIXELFORMAT_RGB24,
-                                                      0);
-            format = GL_RGB;
-        }
-        else
-        {
-            formattedImage = SDL_ConvertSurfaceFormat(image,
-                                                      SDL_PIXELFORMAT_RGBA32,
-                                                      0);
-            format = GL_RGBA;
-        }
-
-        /* Generate The Texture */
-        glTexImage2D(GL_TEXTURE_2D, 0, format, formattedImage->w,
-                     formattedImage->h, 0, format,
-                     GL_UNSIGNED_BYTE, formattedImage->pixels);
-
-        /* Linear Filtering */
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    }
-    else
-    {
-        std::cout << "Cannot load " << filename << ",Error: " << IMG_GetError() << std::endl;
-    }
-    SDL_FreeSurface(image);
-    return texture;
 }

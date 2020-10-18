@@ -1,9 +1,4 @@
-#ifdef __EMSCRIPTEN__
-#include <SDL_opengl.h>
-#else
 #include <glad/glad.h>
-#endif
-
 #include "headers/stb_image.h"
 #include <iostream>
 
@@ -28,10 +23,10 @@ unsigned int loadTexture(char const *path)
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        
-        #ifndef __EMSCRIPTEN__
+
+#ifndef __EMSCRIPTEN__
         glGenerateMipmap(GL_TEXTURE_2D);
-        #endif
+#endif
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
