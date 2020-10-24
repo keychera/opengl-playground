@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import glModule from './hello_em.js'
+import glModule from './satori_em.js'
 
 const App = () => {
   const [module, setModule] = useState(null)
@@ -13,7 +13,7 @@ const App = () => {
   }, []);
 
   const toggleBg = () => {
-    if (module) module._toggle_background_color()
+    if (module) module._toggle_background_color && module._toggle_background_color()
   }
 
   return (
