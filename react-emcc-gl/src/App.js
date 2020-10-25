@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import glModule from './satori_em.js'
+import Slider from './components/Slider';
 
 const App = () => {
   const [module, setModule] = useState(null)
@@ -12,21 +13,18 @@ const App = () => {
     )
   }, []);
 
-  const toggleBg = () => {
-    if (module) module._toggle_background_color && module._toggle_background_color()
-  }
-
   return (
     <div className="App">
-      <header className="App-header">
+      <div className="App-header">
         <canvas id="canvas" />
         <p>
           This is an <code>Emscripten-built C++ Opengl code</code>
         </p>
-        <button onClick={toggleBg}>
-          toggle bg
-        </button>
-      </header>
+        <Slider
+          initial={20}
+          max={25}
+        />
+      </div>
     </div>
   );
 }
