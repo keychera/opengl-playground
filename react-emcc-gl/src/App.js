@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import glModule from './satori_em.js'
+import glModule from './generated/satori_em.js'
 import Slider from './components/Slider';
 
 const App = () => {

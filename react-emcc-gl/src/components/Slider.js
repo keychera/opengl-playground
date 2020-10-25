@@ -11,13 +11,14 @@ const Slot = React.forwardRef((prop, ref) => (
     borderRadius: '15px',
     background: '#dddddd',
     height: '15px',
+    paddingRight: '15px',
   }}>
     {prop.children}
   </div>
 ))
 
 const Thumb = React.forwardRef((prop, ref) => {
-  const { initialPercentage } = prop
+  const { initialpercentage } = prop
   return (
     <div {...prop} ref={ref} style={{
       width: '25px',
@@ -28,7 +29,7 @@ const Thumb = React.forwardRef((prop, ref) => {
       opacity: '0.5',
       background: '#823eb7',
       cursor: 'pointer',
-      left: getLeft(initialPercentage)
+      left: getLeft(initialpercentage)
     }} />
   )
 })
@@ -86,7 +87,7 @@ const Slider = ({ initial, max, onChange }) => {
       <Thumb
         ref={thumbRef}
         onMouseDown={handleMouseDown}
-        {...{ initialPercentage }}
+        initialpercentage={initialPercentage}
       />
     </Slot>
   )
