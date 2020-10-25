@@ -150,6 +150,17 @@
       "dependsOn": [
         "make em build dir"
       ]
+    },
+    {
+      "type": "shell",
+      "label": "em files to react",
+      "command": "scripts\\em_to_react.sh",
+      "args": [
+        "${fileBasenameNoExtension}",
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
     }
   ]
 }
