@@ -1,8 +1,8 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <glad/glad.h> // https://learnopengl.com/Getting-started/Creating-a-window
+#include <GLFW/glfw3.h> // https://learnopengl.com/Getting-started/Creating-a-window
 #include <iostream>
 #include <cmath>
-#include <glm/glm.hpp>
+#include <glm/glm.hpp> // https://learnopengl.com/Getting-started/Transformations
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -10,8 +10,8 @@
 #include "headers/Camera.h"
 #include "headers/util.h"
 
-#define SHADERS_LOC "shaders"
-#define ASSETS_LOC "assets"
+#define SHADERS_LOC "c++/shaders"
+#define ASSETS_LOC "c++/assets"
 
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -41,6 +41,7 @@ int main()
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);

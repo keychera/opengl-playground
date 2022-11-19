@@ -4,7 +4,7 @@
     {
       "type": "shell",
       "label": "C/C++: g++.exe build active file",
-      "command": "${env:MINGW_HOME}/bin/g++.exe",
+      "command": "g++",
       "args": [
         "-g",
         "${fileBasenameNoExtension}.cpp",
@@ -12,14 +12,15 @@
         "stb_image.cpp",
         "util.cpp",
         "-o",
-        "build/${fileBasenameNoExtension}.exe",
+        "build/${fileBasenameNoExtension}.o",
         "-I",
-        "${env:MINGW_HOME}/include",
+        "${workspaceFolder}/c++/include",
         "-L",
-        "${env:MINGW_HOME}/lib",
-        "-lopengl32",
-        "-lglfw3",
-        "-lgdi32"
+        "${workspaceFolder}/c++/lib",
+        "-L",
+        "/usr/local/lib",
+        "-lglfw",
+        // "-lopengl32",
       ],
       "options": {
         "cwd": "${fileDirname}"
@@ -98,10 +99,10 @@
     {
       "type": "shell",
       "label": "make build dir",
-      "command": "cmd",
+      "command": "bb",
       "args": [
-        "/C",
-        "if not exist .\\build mkdir .\\build"
+        "-e",
+        "(babashka.fs/create-dirs \"./build\")"
       ],
       "options": {
         "cwd": "${fileDirname}"
@@ -110,10 +111,10 @@
     {
       "type": "shell",
       "label": "make em build dir",
-      "command": "cmd",
+      "command": "bb",
       "args": [
-        "/C",
-        "if not exist .\\build\\em mkdir .\\build\\em"
+        "-e",
+        "(babashka.fs/create-dirs \"./build/em\")"
       ],
       "options": {
         "cwd": "${fileDirname}"
