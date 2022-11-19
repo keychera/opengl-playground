@@ -61,7 +61,7 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, SCR_WIDTH*2.0f, SCR_HEIGHT*2.0f);
 
     // compile vertex and fragmentShader first
     Shader cubeShader(SHADERS_LOC "/cube.vs", SHADERS_LOC "/light.fs");
